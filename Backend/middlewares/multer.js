@@ -37,10 +37,11 @@ export const uploadImage = multer({
   fileFilter: fileFilter({ file: imageRule }),
 }).single("file");
 
-// Profile update: optional resume (PDF, field "file") and/or new photo (field "profilePhoto"), max 5 MB each.
+// Profile update: optional resume (PDF, field "file") and/or new photo (field "profilePhoto").
+// Max 4 MB each: Vercel functions reject request bodies over 4.5 MB.
 export const uploadProfileFiles = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024, files: 2 },
+  limits: { fileSize: 4 * 1024 * 1024, files: 2 },
   fileFilter: fileFilter({
     file: { types: PDF_TYPES, message: "Resume must be a PDF" },
     profilePhoto: imageRule,

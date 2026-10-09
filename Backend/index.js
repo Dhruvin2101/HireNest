@@ -18,24 +18,36 @@ import {
 } from "./middlewares/security.js";
 import { errorHandler, notFound } from "./middlewares/errorHandler.js";
 
-// fail fast on missing/weak configuration instead of misbehaving at runtime
+// Running as a Vercel function (services deployment) instead of a long-lived server
+const isVercel = Boolean(process.env.VERCEL);
+
+// fail fast on missing/weak configuration instead of misbehaving at runtime.
+// Locally the process exits; on Vercel exiting would just crash-loop, so throw instead.
+const configError = (message) => {
+  console.error(message);
+  if (isVercel) throw new Error(message);
+  process.exit(1);
+};
+
 const missing = ["MONGO_URI", "SECRET_KEY", "CLOUD_NAME", "API_KEY", "API_SECRET"].filter(
   (key) => !process.env[key],
 );
 if (missing.length) {
-  console.error(`Missing environment variables: ${missing.join(", ")} (see .env.example)`);
-  process.exit(1);
+  configError(`Missing environment variables: ${missing.join(", ")} (see .env.example)`);
 }
 if (process.env.SECRET_KEY.length < 32) {
-  console.error("SECRET_KEY must be at least 32 characters; generate one with:");
-  console.error(`  node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`);
-  process.exit(1);
+  configError(
+    "SECRET_KEY must be at least 32 characters; generate one with: " +
+      `node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"`,
+  );
 }
 
 const app = express();
 
-// behind a reverse proxy (Render, Railway, Nginx...) so rate limits see the real client IP
-if (process.env.TRUST_PROXY) app.set("trust proxy", Number(process.env.TRUST_PROXY) || 1);
+// behind a reverse proxy (Vercel, Render, Railway, Nginx...) so rate limits see the real client IP
+if (process.env.TRUST_PROXY || isVercel) {
+  app.set("trust proxy", Number(process.env.TRUST_PROXY) || 1);
+}
 
 //middleware
 app.use(helmet()); // security headers, hides X-Powered-By
@@ -56,6 +68,16 @@ const PORT = process.env.PORT || 8000;
 
 //API routes
 app.get("/api/v1/health", (req, res) => res.json({ status: "ok", success: true }));
+
+// make sure the (cached) database connection is ready before any route touches it
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/company", companyRoutes);
 app.use("/api/v1/job", jobRoutes);
@@ -64,8 +86,15 @@ app.use("/api/v1/application", applicationRoutes);
 app.use(notFound);
 app.use(errorHandler);
 
-connectDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-  });
-});
+// Vercel imports the app and runs it as a function; locally we start a normal server.
+export default app;
+
+if (!isVercel) {
+  connectDB()
+    .then(() => {
+      app.listen(PORT, () => {
+        console.log(`Server is running on port ${PORT}`);
+      });
+    })
+    .catch(() => process.exit(1));
+}

@@ -28,7 +28,7 @@ A full-stack job portal where **students** find, save and apply for jobs, and **
 - Rate limiting (login/register: 20 tries per 15 min per IP), Helmet security headers
 - CSRF protection: state-changing requests must come from an allowed origin and use POST/PUT/DELETE
 - NoSQL-injection protection, input validation, generic login errors (no account enumeration)
-- Upload limits: images only (JPG/PNG/WEBP/GIF, 2 MB) and PDF resumes (5 MB)
+- Upload limits: images only (JPG/PNG/WEBP/GIF, 2 MB) and PDF resumes (4 MB, to fit Vercel's 4.5 MB request limit)
 - No password hashes or internal error details are ever sent to the browser
 
 ## Getting started
@@ -74,6 +74,17 @@ npm test                          # terminal 2 (in Backend/)
 The tests create throwaway users with `@hirenest.test` emails and delete everything they created when they finish. They never upload files to Cloudinary.
 
 ## Deploying
+
+### Vercel (one project, two services)
+
+`vercel.json` at the repo root deploys both apps as one Vercel project on one domain:
+
+- `/api/*` → **backend** service (`Backend/`, Express running as a Vercel function)
+- everything else → **frontend** service (`Frontend/`, Vite static build)
+
+The frontend calls the API on its own domain (`/api/v1/...`), so no API URL needs configuring. In the Vercel project settings, add the backend variables from `Backend/.env.example` (`MONGO_URI`, `SECRET_KEY`, `CLOUD_NAME`, `API_KEY`, `API_SECRET`, `NODE_ENV=production`). The project's own `*.vercel.app` domains are trusted automatically. Add `FRONTEND_URL` only for extra custom domains. In MongoDB Atlas, allow connections from Vercel (Network Access → `0.0.0.0/0`, or Vercel's IP ranges). Test locally with `vercel dev`.
+
+### Separate hosts
 
 - **Backend** (Render, Railway, a VPS…): set the variables from `Backend/.env.example`, plus `NODE_ENV=production`, `FRONTEND_URL=https://your-frontend-domain` and `TRUST_PROXY=1` if behind a proxy. Start command: `npm start`. Health check: `GET /api/v1/health`.
 - **Frontend** (Vercel, Netlify…): set `VITE_API_URL=https://your-api-domain`, build with `npm run build`, serve `dist/`. Configure the host to send all routes to `index.html` (single-page app).

@@ -1,16 +1,25 @@
 import mongoose from "mongoose";
 
-const connectDB = async () => {
-    try {
-       await mongoose.connect(process.env.MONGO_URI)
-       console.log(`mongodb connected sucuessfully`);
-       
-    } catch (error) {
-        // Without a DB every request would just stall, so fail loudly and stop
+// One shared connection per process. On Vercel each function instance is reused across
+// requests, so we connect once (lazily) and reuse it; a failed attempt is retried next time.
+let connection = null;
+
+const connectDB = () => {
+  if (!connection) {
+    connection = mongoose
+      .connect(process.env.MONGO_URI)
+      .then((instance) => {
+        console.log(`mongodb connected sucuessfully`);
+        return instance;
+      })
+      .catch((error) => {
+        connection = null;
         console.error(`MongoDB connection failed: ${error.message}`);
         console.error("Check MONGO_URI in Backend/.env");
-        process.exit(1);
-    }
-}
+        throw error;
+      });
+  }
+  return connection;
+};
 
-export default connectDB
+export default connectDB;

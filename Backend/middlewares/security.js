@@ -1,8 +1,20 @@
 import rateLimit from "express-rate-limit";
 
-// Origins allowed to call the API with cookies (comma-separated FRONTEND_URL).
-export const allowedOrigins = (process.env.FRONTEND_URL || "http://localhost:5173")
-  .split(",")
+// Origins allowed to call the API with cookies: FRONTEND_URL (comma-separated) plus, on
+// Vercel, the project's own domains. With the services setup the frontend and API share one
+// domain, so that domain must be trusted or the CSRF check below would block every POST.
+const vercelOrigins = [
+  process.env.VERCEL_URL, // this deployment, e.g. hirenest-abc123.vercel.app
+  process.env.VERCEL_BRANCH_URL, // the branch's stable preview URL
+  process.env.VERCEL_PROJECT_PRODUCTION_URL, // production domain
+]
+  .filter(Boolean)
+  .map((host) => `https://${host}`);
+
+export const allowedOrigins = [
+  ...(process.env.FRONTEND_URL || "http://localhost:5173").split(","),
+  ...vercelOrigins,
+]
   .map((origin) => origin.trim().replace(/\/$/, ""))
   .filter(Boolean);
 

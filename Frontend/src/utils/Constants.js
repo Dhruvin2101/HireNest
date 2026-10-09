@@ -1,5 +1,11 @@
-// Set VITE_API_URL in Frontend/.env for deployment (see .env.example)
-const API_BASE = `${(import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "")}/api/v1`;
+// API location:
+// - VITE_API_URL set (Frontend/.env): use it, e.g. a separately hosted API.
+// - Dev server (npm run dev): the local backend on http://localhost:8000.
+// - Production build: same origin. On Vercel the "/api" rewrite sends these calls to the
+//   backend service, so the browser just calls /api/v1/... on the site's own domain.
+const API_ORIGIN =
+  import.meta.env.VITE_API_URL ?? (import.meta.env.DEV ? "http://localhost:8000" : "");
+const API_BASE = `${API_ORIGIN.replace(/\/$/, "")}/api/v1`;
 
 export const USER_API_END_POINT = `${API_BASE}/user`;
 export const JOB_API_END_POINT = `${API_BASE}/job`;

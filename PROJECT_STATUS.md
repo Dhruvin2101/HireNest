@@ -28,7 +28,7 @@ _Last full test pass: 2026-10-08_
 | **CSRF**: applying for a job and logging out used GET, so a link on another site could trigger them | Changed to POST; requests from untrusted origins are blocked |
 | Login error messages revealed which emails are registered | One generic message for every login failure |
 | No input validation (email "notanemail", password "1" were accepted) | Validation for name, email, phone, password (8+ characters), role, bio, skills, company fields |
-| Uploads had no size or type limits | Images only, max 2 MB; resumes must be PDFs, max 5 MB; checked before anything reaches Cloudinary |
+| Uploads had no size or type limits | Images only, max 2 MB; resumes must be PDFs, max 4 MB; checked before anything reaches Cloudinary |
 | Company website accepted `javascript:` links | Only http(s) accepted, and the frontend only renders http(s) links |
 | Server errors leaked internal messages | Generic messages; central error handler returns JSON |
 | Applicant lists sent saved jobs and other private fields | Only the fields a recruiter needs |

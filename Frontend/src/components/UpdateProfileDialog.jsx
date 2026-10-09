@@ -37,7 +37,7 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
   };
 
   // same limits as the server, checked here so users get instant feedback
-  const MAX_SIZE = { file: 5 * 1024 * 1024, profilePhoto: 2 * 1024 * 1024 };
+  const MAX_SIZE = { file: 4 * 1024 * 1024, profilePhoto: 2 * 1024 * 1024 };
 
   const fileChangeHandler = (e) => {
     const { name } = e.target;
