@@ -1,0 +1,5 @@
+| #      | HireNest – Job Portal |
+|--------|-----------------------|
+| **Role**   | Full stack developer |
+| **Tech**   | React 19, Vite, Redux Toolkit, Tailwind CSS, shadcn/ui, Node.js, Express 5, MongoDB (Mongoose), JWT, Cloudinary |
+| **Detail** | • Built a MERN job portal with React and Redux Toolkit where students browse, search, and apply for jobs, and recruiters post jobs and manage companies.<br>• Designed a REST API with Express and MongoDB covering 4 linked models (User, Company, Job, Application) and 14 endpoints, with keyword search on job titles and descriptions.<br>• Added secure authentication with bcrypt password hashing, JWT stored in HTTP-only cookies, and role-based access for students and recruiters.<br>• Added resume, profile-photo, and company-logo uploads using Multer and Cloudinary.<br>• Built an application-tracking flow where recruiters accept or reject applicants and students see each application's status on their profile.<br>• Created a clean UI with Tailwind CSS and shadcn/ui (dialogs, carousels, tables, toasts), and kept the login session across reloads with redux-persist. |
